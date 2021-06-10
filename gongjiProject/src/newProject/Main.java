@@ -22,17 +22,31 @@ public class Main {
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String today = sdf.format(date.getTime());
+        
+        String gwangjin = "https://www.gwangjin.go.kr/portal/bbs/B0000001/list.do?menuNo=200190";
         try {
-            driver.get("https://www.gwangjin.go.kr/portal/bbs/B0000001/list.do?menuNo=200190");
+            //광진구청 홈페이지 들어가기
+            driver.get(gwangjin);
             Thread.sleep(3000);
-            int cnt = 1;
+            int listCnt = 1;
+            driver.findElement(By.xpath("/html/body/div[2]/div[2]/main/div[2]/div[3]/ul/li[14]/a")).click();
+            Thread.sleep(2000);
+            
+            ///////////////////////////////////////////////////////////
+            /**마지막 페이지 번호 가져오기*/
+            String lastPage = driver.getCurrentUrl();
+            int last = Integer.parseInt(lastPage.split("pageIndex=")[1]);
+            System.out.println(last);
             while (true) {
-                String dateWeb = driver.findElement(By.xpath(" /html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + cnt + "]/span[3]")).getText();
+                //게시글 날짜 가져오기, 오늘 날짜가 아니면 break
+                String dateWeb = driver.findElement(By.xpath(" /html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + listCnt + "]/span[3]")).getText();
                 if (!dateWeb.equals(today)) break;
                 
-                String getUrl = driver.findElement(By.xpath("/html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + cnt + "]/div/a")).getAttribute("href");
-                String getTitle = driver.findElement(By.xpath("/html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + cnt + "]/div/a/span")).getText();
+                //공지글 개별 url 및 제목 긁기
+                String getUrl = driver.findElement(By.xpath("/html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + listCnt + "]/div/a")).getAttribute("href");
+                String getTitle = driver.findElement(By.xpath("/html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[" + listCnt + "]/div/a/span")).getText();
            
+                //해당 목록 글 들어가서 부서, 작성자명, 전화번호, 공지내용 긁기
                 driver.get(getUrl);
                 Thread.sleep(3000);
                
@@ -45,11 +59,14 @@ public class Main {
                 value = new Values(dateWeb, getTitle, getUrl, getField, getName, getTel, getArticle);
                 arr.add(value);
                 
-                driver.get("https://www.gwangjin.go.kr/portal/bbs/B0000001/list.do?menuNo=200190");
+                driver.get(gwangjin);
                 Thread.sleep(3000);
-                cnt++;
+                listCnt++;
             }
             
+            
+//         마지막목록    /html/body/div[2]/div[2]/main/div[2]/div[3]/ul/li[14]/a
+//         리스트   /html/body/div[2]/div[2]/main/div[2]/div[2]/ul/li[7]/div/a/span
             driver.close();
         } catch (Exception e) {
             e.printStackTrace();
